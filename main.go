@@ -13,14 +13,16 @@ import (
 )
 
 type imageInfo struct {
-	ID   string `json:"id"`
+	ID   int    `json:"id"`
 	Name string `json:"name"`
 }
+
+var dbCon *sql.DB
 
 func main() {
 	router := gin.Default()
 
-	dbTest()
+	initDb()
 
 	router.GET("/images", getImages)
 	router.GET("/images/:id", getImageByID)
@@ -28,7 +30,7 @@ func main() {
 	router.Run("localhost:8080")
 }
 
-func getDbConnection() *sql.DB {
+func initDb() {
 	host := os.Getenv("DIGIKAM_DB_HOST")
 	port := os.Getenv("DIGIKAM_DB_PORT")
 	username := os.Getenv("DIGIKAM_DB_USER")
@@ -37,24 +39,27 @@ func getDbConnection() *sql.DB {
 
 	connectionString := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", username, password, host, port, dbName)
 
+	var err error
+
 	// create a database object which can be used
 	// to connect with database.
-	db, err := sql.Open("mysql", connectionString)
+	dbCon, err = sql.Open("mysql", connectionString)
 
 	// handle error, if any.
 	if err != nil {
 		panic(err)
 	}
 
-	return db
+	testDb()
 }
 
-func dbTest() {
-	db := getDbConnection()
+func testDb() {
+
+	dbCon.Ping()
 
 	// Here a SQL query is used to return all
 	// the data from the table user.
-	result, err := db.Query("SELECT id, name FROM digikam.Images limit 3")
+	rows, err := dbCon.Query("SELECT id, name FROM digikam.Images limit 3")
 
 	// handle error
 	if err != nil {
@@ -63,38 +68,13 @@ func dbTest() {
 
 	// the result object has a method called Next,
 	// which is used to iterate through all returned rows.
-	for result.Next() {
-
-		var id int
-		var name string
-
-		// The result object provided Scan  method
-		// to read row data, Scan returns error,
-		// if any. Here we read id and name returned.
-		err = result.Scan(&id, &name)
-
-		// handle error
-		if err != nil {
-			panic(err)
-		}
-
-		fmt.Printf("Id: %d Name: %s\n", id, name)
+	for _, image := range handleImageDbRows(rows) {
+		fmt.Printf("Id: %d Name: %s\n", image.ID, image.Name)
 	}
-
-	// database object has  a method Close,
-	// which is used to free the resource.
-	// Free the resource when the function
-	// is returned.
-	defer db.Close()
 }
 
 func getImagesFromDb() []imageInfo {
-	db := getDbConnection()
-
-	// Here a SQL query is used to return all
-	// the data from the table user.
-	rows, err := db.Query("SELECT id, name FROM digikam.Images limit 3")
-	defer db.Close()
+	rows, err := dbCon.Query("SELECT id, name FROM digikam.Images limit 3")
 
 	if err != nil {
 		panic(err)
@@ -104,12 +84,7 @@ func getImagesFromDb() []imageInfo {
 }
 
 func getImagesFromDbByTag(tag string) []imageInfo {
-	db := getDbConnection()
-
-	// Here a SQL query is used to return all
-	// the data from the table user.
-	rows, err := db.Query(fmt.Sprintf("select i.id, i.name from digikam.Tags t join digikam.ImageTags it on t.id = it.tagid join digikam.Images i on it.imageid = i.id where t.name = '%s' limit 3;", tag))
-	defer db.Close()
+	rows, err := dbCon.Query(fmt.Sprintf("select i.id, i.name from digikam.Tags t join digikam.ImageTags it on t.id = it.tagid join digikam.Images i on it.imageid = i.id where t.name = '%s' limit 3;", tag))
 
 	if err != nil {
 		panic(err)
@@ -119,12 +94,7 @@ func getImagesFromDbByTag(tag string) []imageInfo {
 }
 
 func getImageFromDbById(id string) []imageInfo {
-	db := getDbConnection()
-
-	// Here a SQL query is used to return all
-	// the data from the table user.
-	rows, err := db.Query(fmt.Sprintf("select id, name from digikam.Images where id = '%s';", id))
-	defer db.Close()
+	rows, err := dbCon.Query(fmt.Sprintf("select id, name from digikam.Images where id = '%s';", id))
 
 	if err != nil {
 		panic(err)
