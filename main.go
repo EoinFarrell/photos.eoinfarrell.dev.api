@@ -37,7 +37,15 @@ func initDb() {
 	password := os.Getenv("DIGIKAM_DB_USER_PASSWORD")
 	dbName := os.Getenv("DIGIKAM_DB_NAME")
 
+	log.Println("asdf-1")
+	log.Println(host)
+	log.Println(port)
+	log.Println(username)
+	log.Println(dbName)
+
 	connectionString := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", username, password, host, port, dbName)
+
+	log.Println("asdf-2")
 
 	var err error
 
@@ -45,26 +53,40 @@ func initDb() {
 	// to connect with database.
 	dbCon, err = sql.Open("mysql", connectionString)
 
+	log.Println("asdf-3")
+
 	// handle error, if any.
 	if err != nil {
+		log.Println("asdf-4")
 		panic(err)
 	}
+
+	log.Println("asdf-5")
 
 	testDb()
 }
 
 func testDb() {
+	log.Println("asdf-6")
+	err := dbCon.Ping()
+	if err != nil {
+		log.Println("asdf-7")
+		panic(err)
+	}
 
-	dbCon.Ping()
+	log.Println("asdf-8")
 
 	// Here a SQL query is used to return all
 	// the data from the table user.
 	rows, err := dbCon.Query("SELECT id, name FROM digikam.Images limit 3")
+	log.Println("asdf-9")
 
-	// handle error
 	if err != nil {
+		log.Println("asdf-10")
 		panic(err)
 	}
+
+	log.Println("asdf-11")
 
 	// the result object has a method called Next,
 	// which is used to iterate through all returned rows.
