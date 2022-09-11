@@ -8,6 +8,7 @@ import (
 
 	"database/sql"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -21,6 +22,7 @@ var dbCon *sql.DB
 
 func main() {
 	router := gin.Default()
+	router.Use(cors.Default())
 
 	initDb()
 
