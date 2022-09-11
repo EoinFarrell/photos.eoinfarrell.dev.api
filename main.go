@@ -27,7 +27,7 @@ func main() {
 	router.GET("/images", getImages)
 	router.GET("/images/:id", getImageByID)
 
-	router.Run("localhost:8080")
+	router.Run("0.0.0.0:8080")
 }
 
 func initDb() {
