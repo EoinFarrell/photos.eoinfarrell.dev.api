@@ -63,7 +63,7 @@ func testDb() {
 
 	// Here a SQL query is used to return all
 	// the data from the table user.
-	rows, err := dbCon.Query("SELECT id, name FROM digikam.Images limit 3")
+	rows, err := dbCon.Query("SELECT id, name FROM digikam.Images limit 5")
 
 	if err != nil {
 		panic(err)
