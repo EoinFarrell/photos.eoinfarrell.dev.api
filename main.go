@@ -18,6 +18,12 @@ type imageInfo struct {
 	Name string `json:"name"`
 }
 
+type tagInfo struct {
+	ID   int    `json:"id"`
+	Pid string `json:"pid"`
+	Name string `json:"name"`
+}
+
 var dbCon *sql.DB
 
 func main() {
@@ -106,6 +112,16 @@ func getImageFromDbById(id string) []imageInfo {
 	return handleImageDbRows(rows)
 }
 
+func getTagsFromDb() []imageInfo {
+	rows, err := dbCon.Query("SELECT id, pid, name FROM digikam.Tags")
+
+	if err != nil {
+		panic(err)
+	}
+
+	return handleTagDbRows(rows)
+}
+
 func handleImageDbRows(rows *sql.Rows) []imageInfo {
 	var image imageInfo
 	var images []imageInfo
@@ -114,6 +130,25 @@ func handleImageDbRows(rows *sql.Rows) []imageInfo {
 	// which is used to iterate through all returned rows.
 	for rows.Next() {
 		err := rows.Scan(&image.ID, &image.Name)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		log.Println(image.ID, image.Name)
+		images = append(images, image)
+	}
+
+	return images
+}
+
+func handleTagDbRows(rows *sql.Rows) []tagInfo {
+	var tag tagInfo
+	var tags []tagInfo
+
+	// the result object has a method called Next,
+	// which is used to iterate through all returned rows.
+	for rows.Next() {
+		err := rows.Scan(&tag.ID, &tag.Pid, &tag.Name)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -139,4 +174,8 @@ func getImages(c *gin.Context) {
 // getAlbums responds with the list of all albums as JSON.
 func getImageByID(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, getImageFromDbById(c.Param("id")))
+}
+
+func getTags(c *gin.Context) {
+	c.IndentedJSON(http.StatusOK, getTagFromDb())
 }
