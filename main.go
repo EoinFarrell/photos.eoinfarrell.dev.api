@@ -34,6 +34,7 @@ func main() {
 
 	router.GET("/images", getImages)
 	router.GET("/images/:id", getImageByID)
+	router.GET("/tags", getTags)
 
 	router.Run("0.0.0.0:8080")
 }
@@ -112,7 +113,7 @@ func getImageFromDbById(id string) []imageInfo {
 	return handleImageDbRows(rows)
 }
 
-func getTagsFromDb() []imageInfo {
+func getTagsFromDb() []tagInfo {
 	rows, err := dbCon.Query("SELECT id, pid, name FROM digikam.Tags")
 
 	if err != nil {
@@ -153,11 +154,11 @@ func handleTagDbRows(rows *sql.Rows) []tagInfo {
 			log.Fatal(err)
 		}
 
-		log.Println(image.ID, image.Name)
-		images = append(images, image)
+		log.Println(tag.ID, tag.Pid, tag.Name)
+		tags = append(tags, tag)
 	}
 
-	return images
+	return tags
 }
 
 // getAlbums responds with the list of all albums as JSON.
@@ -177,5 +178,5 @@ func getImageByID(c *gin.Context) {
 }
 
 func getTags(c *gin.Context) {
-	c.IndentedJSON(http.StatusOK, getTagFromDb())
+	c.IndentedJSON(http.StatusOK, getTagsFromDb())
 }
