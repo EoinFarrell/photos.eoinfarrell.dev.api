@@ -3,6 +3,6 @@
     "go_1_18"
   ],
   "shell": {
-    "init_hook": null
+    "init_hook": ". ./local.env"
   }
 }
