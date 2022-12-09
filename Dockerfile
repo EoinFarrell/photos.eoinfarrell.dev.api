@@ -1,4 +1,4 @@
-FROM golang:1.19
+FROM golang:1.18
 
 WORKDIR /app
 
@@ -8,7 +8,7 @@ RUN go mod download
 
 ADD . /app
 
-RUN go build -o photos-eoinfarrelll-dev-api ./main.go
+RUN go build -o photos-eoinfarrelll-dev-api ./cmd/main.go
 
 EXPOSE 8080
 
