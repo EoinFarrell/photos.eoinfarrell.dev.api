@@ -44,3 +44,25 @@ func handleTagDbRows(rows *sql.Rows) []models.TagInfo {
 
 	return tags
 }
+
+func handleImageAndTagDbRows(rows *sql.Rows) []models.ImageAndTag {
+	var tag models.TagInfo
+	var image models.ImageInfo
+	var tagCount int
+
+	var imageAndTag []models.ImageAndTag
+
+	// the result object has a method called Next,
+	// which is used to iterate through all returned rows.
+	for rows.Next() {
+		err := rows.Scan(&image.ID, &image.Name, &tag.ID, &tag.Pid, &tag.Name, &tagCount)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		log.Println(tag.ID, tag.Pid, tag.Name)
+		imageAndTag = append(imageAndTag, models.ImageAndTag{image, tag, tagCount})
+	}
+
+	return imageAndTag
+}

@@ -5,6 +5,7 @@ import (
 	"github.com/eoinfarrell/photos.eoinfarrell.dev.api/pkg/db"
 	"github.com/eoinfarrell/photos.eoinfarrell.dev.api/pkg/models"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -18,19 +19,40 @@ func main() {
 
 	dbCon := db.InitDb()
 
-	// deleteUnusedImages()
-
 	router.GET("/images", func(c *gin.Context) { renderIndexPage(c, getImages(dbCon, c.Query("tag")), db.GetTagsFromDb(dbCon)) })
 	router.GET("/images/:id", func(c *gin.Context) { getImageByID(c, dbCon) })
 	router.GET("/tags", func(c *gin.Context) { getTagsHtml(c, dbCon) })
 
-	router.GET("/index", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "pictures.tmpl", gin.H{
-			"title": "Main website",
-		})
-	})
+	router.GET("/index", func(c *gin.Context) { getIndexPage(c, dbCon) })
+	router.GET("/collection", func(c *gin.Context) { getCollectionPage(c, dbCon, c.Query("id")) })
 
 	router.Run("0.0.0.0:8080")
+}
+
+func getIndexPage(c *gin.Context, dbCon *sql.DB) {
+	imageAndTag := db.GetRandomImageForAllTopLevelTags(dbCon)
+
+	c.HTML(http.StatusOK, "index.tmpl", gin.H{
+		"imageAndTag": imageAndTag,
+	})
+}
+
+func getCollectionPage(c *gin.Context, dbCon *sql.DB, col string) {
+	imageAndTag := db.GetRandomImageForAllTagsInCollection(dbCon, col)
+
+	if imageAndTag == nil {
+		if colId, err := strconv.Atoi(col); err == nil {
+			images := db.GetImagesFromDbByTagId(dbCon, colId)
+
+			c.HTML(http.StatusOK, "collection.tmpl", gin.H{
+				"images": images,
+			})
+		}
+	} else {
+		c.HTML(http.StatusOK, "index.tmpl", gin.H{
+			"imageAndTag": imageAndTag,
+		})
+	}
 }
 
 func renderIndexPage(c *gin.Context, images []models.ImageInfo, tags []models.TagInfo) {
@@ -40,17 +62,9 @@ func renderIndexPage(c *gin.Context, images []models.ImageInfo, tags []models.Ta
 	})
 }
 
-func getImagesAsHtml(dbCon *sql.DB, c *gin.Context) {
-	var images = db.GetImagesFromDbByTag(dbCon, c.Query("tag"))
-
-	c.HTML(http.StatusOK, "pictures.tmpl", gin.H{
-		"images": images,
-	})
-}
-
 func getImages(dbCon *sql.DB, tag string) []models.ImageInfo {
 	if tag != "" {
-		return db.GetImagesFromDbByTag(dbCon, tag)
+		return db.GetImagesFromDbByTagName(dbCon, tag)
 	} else {
 		return db.GetImagesFromDb(dbCon)
 	}

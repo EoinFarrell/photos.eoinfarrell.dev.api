@@ -10,3 +10,9 @@ type TagInfo struct {
 	Pid  string `json:"pid"`
 	Name string `json:"name"`
 }
+
+type ImageAndTag struct {
+	ImageInfo ImageInfo `json:"image-info"`
+	TagInfo   TagInfo   `json:"tag-info"`
+	TagCount  int       `json:"count"`
+}
